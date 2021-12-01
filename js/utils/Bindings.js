@@ -5,7 +5,7 @@ module.exports = {
     },
     scala: {
         CommandModel: Java.type('surge.js.JsCommandModel'),
-        SurgeCommand: Java.type('surge.scaladsl.command.SurgeCommand'),
+        SurgeCommand: Java.type('surge.js.JsSurgeCommand'),
         SurgeModel: Java.type('surge.js.JsSurgeModel'),
         Try: Java.type('scala.util.Try'),
         Option: Java.type('scala.Option'),

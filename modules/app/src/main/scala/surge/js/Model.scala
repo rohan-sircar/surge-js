@@ -8,6 +8,8 @@ import org.slf4j.{Logger, LoggerFactory}
 import java.util.UUID
 import play.api.libs.json.Json
 import play.api.libs.json.JsValue
+import org.graalvm.polyglot._
+import scala.concurrent.Future
 
 final case class State(aggregateId: String, value: String)
 object State {

@@ -22,17 +22,18 @@ console.log(surgeModel)
 const surgeCommand = scala.SurgeCommand.apply(surgeModel)
 console.log(surgeCommand)
 
+// const fn = async () => {
 surgeCommand.start()
 
-app.get('/api/library/books/:id', (req, res) => {
+app.get('/api/library/books/:id', async (req, res) => {
     console.log(req.params)
-    surgeCommand.aggregateFor(java.UUID.fromString(req.params.id))
+    const r = await surgeCommand.aggregateFor(java.UUID.fromString(req.params.id))
         .sendCommand(surge.Command.apply(req.params.id, JSON.stringify({ action: "GetBook" })))
-        .map((result, e) => {
-            res.send(result.toString())
-            return ""
-        })
-
+    // .map((result) => {
+    //     res.send(result.toString())
+    //     return ""
+    // }, Java.type('scala.concurrent.Promise').apply())
+    console.log(r)
     res.send("ok")
 })
 app.post('/api/library/books/:id', (req, res) => {
@@ -54,4 +55,6 @@ const server = app.listen(8082, () => {
     console.log("Example app listening at http://%s:%s", host, port)
 })
 
-server.on('close', () => surgeCommand.stop())
+server.on('close', async () => await surgeCommand.stop())
+// }
+// fn()
