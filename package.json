@@ -1,0 +1,14 @@
+{
+    "name": "surge-js",
+    "version": "0.0.1",
+    "main": "index.js",
+    "author": "Rohan Sircar",
+    "license": "MIT",
+    "private": false,
+    "files": ["js"],
+
+    "dependencies": {},
+    "scripts": {
+        "app": "./scripts/run-node.sh"
+    }
+}
