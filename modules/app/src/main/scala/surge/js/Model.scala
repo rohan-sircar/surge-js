@@ -3,7 +3,7 @@ package surge.js
 import surge.scaladsl.command.AggregateCommandModel
 
 import scala.util.{Failure, Success, Try}
-import surge.js.Book
+
 import org.slf4j.{Logger, LoggerFactory}
 import java.util.UUID
 import play.api.libs.json.Json

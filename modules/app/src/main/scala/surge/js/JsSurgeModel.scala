@@ -1,5 +1,3 @@
-// Copyright © 2017-2021 UKG Inc. <https://www.ukg.com>
-
 package surge.js
 
 import play.api.libs.json.Json
@@ -12,7 +10,6 @@ import surge.core.{
 }
 import surge.kafka.KafkaTopic
 import surge.scaladsl.command.{AggregateCommandModel, SurgeCommandBusinessLogic}
-import surge.js.Book
 
 import java.util.UUID
 
