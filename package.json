@@ -5,9 +5,12 @@
     "author": "Rohan Sircar",
     "license": "MIT",
     "private": false,
-    "files": ["js"],
-
-    "dependencies": {},
+    "files": [
+        "js"
+    ],
+    "dependencies": {
+        "express": "^4.17.1"
+    },
     "scripts": {
         "app": "./scripts/run-node.sh"
     }
