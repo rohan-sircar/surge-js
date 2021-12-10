@@ -12,6 +12,7 @@ import surge.kafka.KafkaTopic
 import surge.scaladsl.command.{AggregateCommandModel, SurgeCommandBusinessLogic}
 
 import java.util.UUID
+import surge.core.command.AggregateCommandModelCoreTrait
 
 object JsSurgeModel {
 
@@ -19,10 +20,11 @@ object JsSurgeModel {
       _aggregateName: String,
       _stateTopic: String,
       _eventsTopic: String,
-      _commandModel: AggregateCommandModel[State, Command, Event]
+      _commandModel: JsCommandModel
   ): SurgeCommandBusinessLogic[UUID, State, Command, Event] =
     new SurgeCommandBusinessLogic[UUID, State, Command, Event] {
-      def commandModel: AggregateCommandModel[State, Command, Event] =
+      def commandModel
+          : AggregateCommandModelCoreTrait[State, Command, Nothing, Event] =
         _commandModel
 
       def aggregateName: String = _aggregateName

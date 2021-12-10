@@ -7,55 +7,85 @@ import scala.concurrent.Future
 import scala.concurrent.ExecutionContext
 import surge.scaladsl.command.AggregateCommandModel
 import surge.scaladsl.command.SurgeCommandBusinessLogic
+import scala.util.Success
+import scala.util.Failure
+import surge.scaladsl.common.CommandResult
+import surge.scaladsl.common.ApplyEventResult
+import monix.execution.Scheduler
+import scala.concurrent.Await
+import scala.concurrent.duration._
 
 trait Thenable {
   def then(onResolve: Value, onReject: Value): Unit
 }
 
 object Thenable {
-//   implicit val ec: scala.concurrent.ExecutionContext =
-//     scala.concurrent.ExecutionContext.global
-//   val t: Thenable = (resolve, reject) => resolve.executeVoid(42)
-
-//   val t2: Thenable = (resolve, reject) =>
-//     Future(1).map { i => resolve.executeVoid(i) }
 
   def fromFuture[T](f: Future[T])(implicit ec: ExecutionContext): Thenable =
-    (resolve, reject) => f.map { t => resolve.executeVoid(t) }
+    (resolve, reject) =>
+      f onComplete {
+        case Success(value)     => resolve.executeVoid(value)
+        case Failure(exception) => reject.executeVoid(exception)
+      }
 }
 
 trait JsAggregateRef[Agg, Cmd, Event] {
-  def getState: Thenable
+  def getState(cb: Value): Unit
 
-  def sendCommand(command: Cmd): Thenable
+  def sendCommand(command: Cmd, cb: Value): Unit
 
-  def applyEvent(event: Event): Thenable
+  def applyEvent(event: Event, cb: Value): Unit
+}
+
+sealed trait SurgeCommandProto
+object SurgeCommandProto {
+  final case class State(value: Option[surge.js.State], cb: Value)
+      extends SurgeCommandProto
+  final case class Command(value: CommandResult[surge.js.State], cb: Value)
+      extends SurgeCommandProto
+  final case class Event(value: ApplyEventResult[surge.js.State], cb: Value)
+      extends SurgeCommandProto
 }
 
 final class JsSurgeCommand private (
-    inner: SurgeCommand[UUID, State, Command, Nothing, Event]
+    inner: SurgeCommand[UUID, State, Command, Nothing, Event],
+    executor: JsExecutor[SurgeCommandProto, Unit]
 )(implicit val ec: ExecutionContext) {
 
-  def start() = Thenable.fromFuture(inner.start())
+  def start() = Await.result(inner.start(), 3.seconds)
 
-  def stop() = Thenable.fromFuture(inner.stop())
+  def stop() = Await.result(inner.stop(), 3.seconds)
 
   def aggregateFor(id: UUID) = {
     val agg = inner.aggregateFor(id)
     new JsAggregateRef[State, Command, Event] {
 
-      def getState: Thenable = Thenable.fromFuture(agg.getState)
-
-      def sendCommand(command: Command): Thenable =
-        Thenable.fromFuture(agg.sendCommand(command))
-
-      def applyEvent(event: Event): Thenable = ???
+      def getState(cb: Value): Unit = for {
+        s <- agg.getState
+        _ <- executor.request(SurgeCommandProto.State(s, cb))
+      } yield ()
+      def sendCommand(command: Command, cb: Value): Unit =
+        for {
+          c <- agg.sendCommand(command)
+          // _ <- Future.successful(cb.executeVoid(c))
+          _ <- executor.request(SurgeCommandProto.Command(c, cb))
+        } yield ()
+      def applyEvent(event: Event, cb: Value): Unit = for {
+        e <- agg.applyEvent(event)
+        _ <- executor.request(SurgeCommandProto.Event(e, cb))
+      } yield ()
 
     }
   }
 }
 
 object JsSurgeCommand {
-  def apply(model: SurgeCommandBusinessLogic[UUID, State, Command, Event]) =
-    new JsSurgeCommand(SurgeCommand(model))(ExecutionContext.global)
+  def apply(
+      model: SurgeCommandBusinessLogic[UUID, State, Command, Event],
+      executor: JsExecutor[SurgeCommandProto, Unit]
+  )(implicit s: Scheduler) =
+    new JsSurgeCommand(
+      SurgeCommand(model),
+      executor
+    )
 }

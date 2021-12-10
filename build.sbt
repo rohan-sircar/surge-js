@@ -21,7 +21,8 @@ lazy val app = (project in file("modules/app"))
       "com.typesafe.play" %% "play-json" % "2.9.2",
       "org.graalvm.sdk" % "graal-sdk" % "20.0.0",
       "org.graalvm.truffle" % "truffle-api" % "20.0.0",
-      "org.graalvm.js" % "js" % "20.0.0"
+      "org.graalvm.js" % "js" % "20.0.0",
+      "io.monix" %% "monix" % "3.4.0"
     ),
     publish / skip := true,
     assemblyMergeStrategy in assembly := {

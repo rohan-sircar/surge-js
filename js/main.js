@@ -27,13 +27,14 @@ surgeCommand.start()
 
 app.get('/api/library/books/:id', async (req, res) => {
     console.log(req.params)
-    const r = await surgeCommand.aggregateFor(java.UUID.fromString(req.params.id))
-        .sendCommand(surge.Command.apply(req.params.id, JSON.stringify({ action: "GetBook" })))
+    const r = await surgeCommand.aggregateFor(java.UUID.fromString(req.params.id)).getState()
+    // .then((a, b) => console.log(a.asString(), b.asString()))
+    // .sendCommand(surge.Command.apply(req.params.id, JSON.stringify({ action: "GetBook" })))
     // .map((result) => {
     //     res.send(result.toString())
     //     return ""
     // }, Java.type('scala.concurrent.Promise').apply())
-    console.log(r)
+    console.log("Surge Command Result", r)
     res.send("ok")
 })
 app.post('/api/library/books/:id', (req, res) => {
